@@ -70,7 +70,8 @@ class Embedding:
         return self.inverted_index_.get(word, oov)
 
     def _check_is_wolkenatlas(self, filename):
-        has_vectors_file = os.path.exists(os.path.join(filename, constants.VECTORS_FILENAME))
+        has_vectors_file = (os.path.exists(os.path.join(filename, constants.VECTORS_FILENAME_NPY)) or
+                            os.path.exists(os.path.join(filename, constants.VECTORS_FILENAME_HDF)))
         has_inv_idx_file = os.path.exists(os.path.join(filename, constants.INVERTED_INDEX_FILENAME))
 
         return has_vectors_file and has_inv_idx_file
