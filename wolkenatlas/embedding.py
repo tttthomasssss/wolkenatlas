@@ -14,8 +14,7 @@ class Embedding:
         if self._check_is_wolkenatlas(model_file):
             self.inverted_index_ = file_processing.load_pickle(os.path.join(model_file,
                                                                             constants.INVERTED_INDEX_filename))
-            self.vector_space_ = file_processing.hdf_to_numpy(os.path.join(model_file,
-                                                                           constants.VECTORS_filename))
+            self.vector_space_ = file_processing.load_vector_space(model_file)
         else:
             file_type = kwargs.pop('file_type', None)
 
@@ -60,11 +59,11 @@ class Embedding:
     def dimensionality(self):
         return self.dimensionality_
 
-    def to_file(self, filename):
+    def to_file(self, filename, use_hdf=False):
         if not os.path.exists(filename):
             os.makedirs(filename)
 
-        file_processing.numpy_to_hdf(self.vector_space_, os.path.join(filename, constants.VECTORS_FILENAME))
+        file_processing.save_vector_space(self.vector_space_, filename, use_hdf)
         file_processing.save_pickle(self.inverted_index_, os.path.join(filename, constants.INVERTED_INDEX_FILENAME))
 
     def word2index(self, word, oov=-1):

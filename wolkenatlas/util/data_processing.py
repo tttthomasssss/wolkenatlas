@@ -35,6 +35,7 @@ def load_binary_file(filename, encoding='utf-8', expected_dim=-1, expected_vocab
         data = []
         binary_len = np.dtype(expected_dtype).itemsize * expected_dim
 
+        # thank you gensim!
         for idx in range(expected_vocab_size):
             if idx % 10000 == 0: logging.debug(f'{idx} / {expected_vocab_size} items processed!')
             word = []

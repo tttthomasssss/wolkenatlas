@@ -76,8 +76,7 @@ setup(
 	# requirements files see:
 	# https://packaging.python.org/en/latest/requirements.html
 	install_requires=[
-		'numpy>=1.9.0',
-		'tables>=3.6.1'
+		'numpy>=1.18.2',
 	],
 
 	# List additional groups of dependencies here (e.g. development
