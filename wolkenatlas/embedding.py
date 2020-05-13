@@ -13,7 +13,7 @@ class Embedding:
 
         if self._check_is_wolkenatlas(model_file):
             self.inverted_index_ = file_processing.load_pickle(os.path.join(model_file,
-                                                                            constants.INVERTED_INDEX_filename))
+                                                                            constants.INVERTED_INDEX_FILENAME))
             self.vector_space_ = file_processing.load_vector_space(model_file)
         else:
             file_type = kwargs.pop('file_type', None)
