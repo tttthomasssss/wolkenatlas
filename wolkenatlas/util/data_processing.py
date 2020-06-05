@@ -74,14 +74,14 @@ def load_text_file(filename, encoding='utf-8', expected_dim=-1,  header_sep=' ',
 
         if not has_header and expected_dim < 0:
             raise ValueError(f'If the file does not contain a header (has_header={has_header}), then expected_dim '
-                             f'must be passed manually (expected_dim={expected_dim}!')
+                             f'must be passed manually (expected_dim={expected_dim})!')
 
         inv_idx = {}
         data = []
         for idx, line in enumerate(in_file, 1):
             if idx % 10000 == 0: logging.debug(f'{idx} lines processed!')
 
-            parts = line.strip().split(data_sep)
+            parts = line.rstrip().split(data_sep)
             word = parts[0]
             if (strip_pos_tags):
                 word = word.split(pos_separator)[0]
@@ -92,7 +92,7 @@ def load_text_file(filename, encoding='utf-8', expected_dim=-1,  header_sep=' ',
                 logging.warning(f'Failed to parse line {idx} (word={word}): {ex}')
 
             if len(weights) != expected_dim:
-                logging.warning(f'Dimension of extracted weight vector (len(weights)={weights.shape[0]}) does not '
+                logging.warning(f'Dimension of extracted weight vector (len(weights)={len(weights)} does not '
                                 f'match the expected dimensionality (expected_dim={expected_dim}), skipping weights '
                                 f'for vocabulary item="{word}"!')
             else:
