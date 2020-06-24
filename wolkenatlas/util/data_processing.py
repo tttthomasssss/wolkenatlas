@@ -4,7 +4,10 @@ import numpy as np
 
 
 def _check_has_header(line, encoding='utf-8', sep=' '):
-    line = line.decode(encoding).strip() if isinstance(line, bytes) else line.strip()
+    try:
+        line = line.decode(encoding).strip() if isinstance(line, bytes) else line.strip()
+    except UnicodeDecodeError:
+        return False
 
     return True if len(line.split(sep)) == 2 else False
 
@@ -62,8 +65,8 @@ def load_binary_file(filename, encoding='utf-8', expected_dim=-1, expected_vocab
         return inv_idx, np.array(data).astype(output_dtype)
 
 
-def load_text_file(filename, encoding='utf-8', expected_dim=-1,  header_sep=' ',
-                   output_dtype=np.float32, data_sep=' ', strip_pos_tags=False, pos_separator='__'):
+def load_text_file(filename, encoding='utf-8', expected_dim=-1,  header_sep=' ', pos_separator='__',
+                   output_dtype=np.float32, data_sep=' ', strip_pos_tags=False, **_):
     with open(filename, encoding=encoding) as in_file:
         line = next(in_file)
         has_header = _check_has_header(line, encoding=encoding, sep=header_sep)

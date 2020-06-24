@@ -27,7 +27,8 @@ class Embedding:
                     file_type = constants.FILE_TYPE_MAP[ext]
 
             loader = getattr(data_processing, f'load_{file_type}_file')
-            inv_idx, emb = loader(filename=model_file, expected_dim=kwargs.pop('expected_dim', -1))
+            inv_idx, emb = loader(filename=model_file, expected_dim=kwargs.pop('expected_dim', -1),
+                                  expected_vocab_size=kwargs.pop('expected_vocab_size', -1))
 
             self.inverted_index_ = inv_idx
             self.vector_space_ = emb
@@ -101,5 +102,15 @@ class Embedding:
 
 
 if __name__ == '__main__':
-    emb = Embedding(model_file='/Users/thomas/research/data/glove/glove.6B.50d.txt', expected_dim=50)
-    emb.to_file('/Users/thomas/research/data/glove/glove.6B.50d.kvec')
+    #emb = Embedding(model_file='/Users/thomas/research/data/glove/glove.6B.50d.txt', expected_dim=50)
+    emb = Embedding(model_file='/Users/thomas/research/data/glove/glove.6B.50d.kvec')
+    data = ['I like beer and pizza.', 'Pizza is actually my favourite food.', 'Pizza and pasta are my thing.']
+
+    from wolkenatlas.preprocessing import EmbeddingsVectorizer
+    vec = EmbeddingsVectorizer(embedding_model=emb)
+    X = vec.transform(data)
+    print(X.shape)
+
+    #emb.to_file('/Users/thomas/research/data/glove/glove.6B.50d.kvec')
+
+    #emb = Embedding(model_file='/Users/thomas/research/data/fastText/cc.en.300.bin', expected_dim=300, expected_vocab_size=2000000, file_type='binary')
