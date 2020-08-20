@@ -61,7 +61,7 @@ setup(
 	],
 
 	# What does your project relate to?
-	keywords='nlp research distributional-semantics',
+	keywords='nlp research distributional-semantics word-embedding word-representation word-vector',
 
 	# You can just specify the packages manually here if your project is
 	# simple. Or you can use find_packages().
