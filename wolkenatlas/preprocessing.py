@@ -32,9 +32,14 @@ class EmbeddingsVectorizer():
         for doc in documents:
             x_doc = []
             for token in self.tokenizer_(doc):
-                if token in self.vocab_:
+                if self.lowercase_(token) in self.vocab_:
                     x_doc.append(self.embedding_model_[self.lowercase_(token)])
             transformed_doc = self.encoder_model_(x_doc)
+
+            # TODO: Need better handling when a document can't be transformed at all (i.e. all items are not within the specified vocabulary)
+            if len(transformed_doc) <= 0:
+                transformed_doc = self.embedding_model_.oov
+
             data.append(transformed_doc)
 
         return self.transform_to_tensor_type_(data)

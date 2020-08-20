@@ -39,6 +39,13 @@ class Embedding:
         if init_neighbours:
             pass # TODO: Load neighbours
 
+    @property
+    def oov(self):
+        return self.oov_
+
+    def vocab(self):
+        return self.inverted_index_.keys()
+
     def __len__(self):
         return self.vector_space_.shape[0]
 
