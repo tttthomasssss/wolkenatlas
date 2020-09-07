@@ -26,6 +26,8 @@ class EmbeddingsVectorizer():
         else:
             self._filter_extremes_with_vocab(freq_table=freq_table)
 
+        return self
+
     def transform(self, documents):
         data = []
 
@@ -43,6 +45,11 @@ class EmbeddingsVectorizer():
             data.append(transformed_doc)
 
         return self.transform_to_tensor_type_(data)
+
+    def fit_transform(self, documents):
+        self.fit(documents)
+
+        return self.transform(documents)
 
     def _to_numpy(self, data):
         return np.array(data)
