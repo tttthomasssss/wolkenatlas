@@ -4,11 +4,12 @@ import logging
 import numpy as np
 
 from wolkenatlas import encoder
+from wolkenatlas.util import constants
 
 
 class EmbeddingsVectorizer():
     def __init__(self, embedding_model, encoder_model='average', tokenizer=lambda x: x.split(), vocab=None, min_df=1,
-                 lowercase=True, transform_to_tensor_type='numpy'):
+                 lowercase=True, transform_to_tensor_type='numpy', **kwargs):
         self.embedding_model_ = embedding_model
         self.encoder_model_ = getattr(encoder, f'{encoder_model}_encoder')
         self.tokenizer_ = tokenizer
@@ -16,6 +17,10 @@ class EmbeddingsVectorizer():
         self.min_df_ = min_df
         self.lowercase_ = lambda x: x.lower() if lowercase else lambda x: x
         self.transform_to_tensor_type_ = getattr(self, f'_to_{transform_to_tensor_type}')
+
+        emb_dim = self.embedding_model_.dimensionality
+        default_oov = np.zeros((emb_dim * constants.COMPOSITION_FUNCTION_DIM_MULTIPLIER.get(encoder_model, 1)))
+        self.oov_ = kwargs.pop('oov', default_oov)
 
     def fit(self, documents):
         freq_table = self._fit_freq_table(documents=documents)
@@ -40,7 +45,7 @@ class EmbeddingsVectorizer():
 
             # TODO: Need better handling when a document can't be transformed at all (i.e. all items are not within the specified vocabulary)
             if len(transformed_doc) <= 0:
-                transformed_doc = self.embedding_model_.oov
+                transformed_doc = self.oov_
 
             data.append(transformed_doc)
 

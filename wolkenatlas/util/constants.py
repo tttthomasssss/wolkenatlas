@@ -7,6 +7,17 @@ FILE_TYPE_MAP = {
     '.bin': 'binary'
 }
 
+COMPOSITION_FUNCTION_DIM_MULTIPLIER = {
+    'sum': 1,
+    'average': 1,
+    'max': 1,
+    'concatenate_average_max': 2,
+    'concatenate_sum_max': 2,
+    'concatenate_average_min': 2,
+    'concatenate_sum_min': 2,
+    'concatenate_min_max': 2
+}
+
 FASTTEXT_CC_URL = 'https://dl.fbaipublicfiles.com/fasttext/vectors-crawl/'
 FASTTEXT_WIKI_URL = 'https://dl.fbaipublicfiles.com/fasttext/vectors-wiki/'
 FASTTEXT_ALIGNED_URL = 'https://dl.fbaipublicfiles.com/fasttext/vectors-aligned/'
