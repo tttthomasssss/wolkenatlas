@@ -24,7 +24,7 @@ class EmbeddingsVectorizer():
         else:
             self.embedding_model_ = embedding_model
 
-        emb_dim = self.embedding_model_.dimensionality()
+        emb_dim = self.embedding_model_.dimensionality
         default_oov = np.zeros((emb_dim * constants.COMPOSITION_FUNCTION_DIM_MULTIPLIER.get(encoder_model, 1)))
         self.oov_ = kwargs.pop('oov', default_oov)
 
