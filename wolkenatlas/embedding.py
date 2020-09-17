@@ -13,11 +13,12 @@ class Embedding:
         self.inverted_index_ = inverted_index
         self.vector_space_ = vector_space
 
-        self._finalize(**kwargs)
+        if kwargs.pop('should_finalize', True):
+            self._finalize(**kwargs)
 
     @staticmethod
     def _empty(): # Use at your own risk
-        return Embedding(inverted_index=None, vector_space=None)
+        return Embedding(inverted_index=None, vector_space=None, should_finalize=False)
 
     def _finalize(self, **kwargs):
         self.dimensionality_ = self.vector_space_.shape[1]
