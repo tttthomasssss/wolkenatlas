@@ -9,12 +9,31 @@ from wolkenatlas.util import file_processing
 
 
 class Embedding:
-    def __init__(self, model_file, init_neighbours=False, **kwargs):
+    def __init__(self, inverted_index, vector_space, **kwargs):
+        self.inverted_index_ = inverted_index
+        self.vector_space_ = vector_space
 
-        if self._check_is_wolkenatlas(model_file):
-            self.inverted_index_ = file_processing.load_pickle(os.path.join(model_file,
-                                                                            constants.INVERTED_INDEX_FILENAME))
-            self.vector_space_ = file_processing.load_vector_space(model_file)
+        self._finalize(**kwargs)
+
+    @staticmethod
+    def _empty(): # Use at your own risk
+        return Embedding(inverted_index=None, vector_space=None)
+
+    def _finalize(self, **kwargs):
+        self.dimensionality_ = self.vector_space_.shape[1]
+        self.oov_ = kwargs.pop('oov', np.zeros((self.dimensionality_,)))
+
+        if kwargs.pop('init_neighbours', False):
+            pass
+
+    @staticmethod
+    def from_file(model_file, **kwargs):
+        emb = Embedding._empty()
+
+        if data_processing.check_is_wolkenatlas(model_file):
+            emb.inverted_index_ = file_processing.load_pickle(os.path.join(model_file,
+                                                                           constants.INVERTED_INDEX_FILENAME))
+            emb.vector_space_ = file_processing.load_vector_space(model_file)
         else:
             file_type = kwargs.pop('file_type', None)
 
@@ -30,14 +49,10 @@ class Embedding:
             inv_idx, emb = loader(filename=model_file, expected_dim=kwargs.pop('expected_dim', -1),
                                   expected_vocab_size=kwargs.pop('expected_vocab_size', -1))
 
-            self.inverted_index_ = inv_idx
-            self.vector_space_ = emb
+            emb.inverted_index_ = inv_idx
+            emb.vector_space_ = emb
 
-        self.dimensionality_ = self.vector_space_.shape[1]
-        self.oov_ = kwargs.pop('oov', np.zeros((self.dimensionality_,)))
-
-        if init_neighbours:
-            pass # TODO: Load neighbours
+        emb._finalize(**kwargs)
 
     @property
     def oov(self):
@@ -77,13 +92,6 @@ class Embedding:
     def word2index(self, word, oov=-1):
         return self.inverted_index_.get(word, oov)
 
-    def _check_is_wolkenatlas(self, filename):
-        has_vectors_file = (os.path.exists(os.path.join(filename, constants.VECTORS_FILENAME_NPY)) or
-                            os.path.exists(os.path.join(filename, constants.VECTORS_FILENAME_HDF)))
-        has_inv_idx_file = os.path.exists(os.path.join(filename, constants.INVERTED_INDEX_FILENAME))
-
-        return has_vectors_file and has_inv_idx_file
-
     def get_pytorch_tensor(self, pad_vector=None, unk_vector=None, additional_data=None):
         return self._create_pytorch_tensor(X=self.vector_space_, pad_vector=pad_vector, unk_vector=unk_vector,
                                            additional_data=additional_data)
@@ -106,7 +114,6 @@ class Embedding:
 
     def get_keras_tensor(self):
         pass
-
 
 if __name__ == '__main__':
     #emb = Embedding(model_file='/Users/thomas/research/data/glove/glove.6B.50d.txt', expected_dim=50)

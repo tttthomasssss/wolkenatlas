@@ -1,6 +1,17 @@
 import logging
+import os
 
 import numpy as np
+
+from wolkenatlas.util import constants
+
+
+def check_is_wolkenatlas(filename):
+    has_vectors_file = (os.path.exists(os.path.join(filename, constants.VECTORS_FILENAME_NPY)) or
+                        os.path.exists(os.path.join(filename, constants.VECTORS_FILENAME_HDF)))
+    has_inv_idx_file = os.path.exists(os.path.join(filename, constants.INVERTED_INDEX_FILENAME))
+
+    return has_vectors_file and has_inv_idx_file
 
 
 def _check_has_header(line, encoding='utf-8', sep=' '):

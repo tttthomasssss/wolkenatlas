@@ -4,19 +4,25 @@ import logging
 import numpy as np
 
 from wolkenatlas import encoder
+from wolkenatlas.embedding import Embedding
 from wolkenatlas.util import constants
 
 
 class EmbeddingsVectorizer():
     def __init__(self, embedding_model, encoder_model='average', tokenizer=lambda x: x.split(), vocab=None, min_df=1,
                  lowercase=True, transform_to_tensor_type='numpy', **kwargs):
-        self.embedding_model_ = embedding_model
         self.encoder_model_ = getattr(encoder, f'{encoder_model}_encoder')
         self.tokenizer_ = tokenizer
         self.vocab_ = vocab
         self.min_df_ = min_df
         self.lowercase_ = lambda x: x.lower() if lowercase else lambda x: x
         self.transform_to_tensor_type_ = getattr(self, f'_to_{transform_to_tensor_type}')
+
+        if embedding_model == 'random':
+            self.embedding_model_ = self._create_random_model(dimensionality=kwargs.pop('dimensionality', 300),
+                                                              random_seed=kwargs.pop('random_seed', 29306))
+        else:
+            self.embedding_model_ = embedding_model
 
         emb_dim = self.embedding_model_.dimensionality
         default_oov = np.zeros((emb_dim * constants.COMPOSITION_FUNCTION_DIM_MULTIPLIER.get(encoder_model, 1)))
@@ -94,3 +100,12 @@ class EmbeddingsVectorizer():
         for token in freq_table.elements():
             if token in self.vocab_ and freq_table[token] < self.min_df_:
                 self.vocab_.remove(token)
+
+    def _create_random_model(self, dimensionality, random_seed):
+        idx = dict(enumerate(self.vocab_))
+        inverted_index = dict(zip(idx.values(), idx.keys()))
+
+        rnd = np.random.RandomState(seed=random_seed)
+        vector_space = rnd.randn(len(inverted_index), dimensionality)
+
+        return Embedding(inverted_index=inverted_index, vector_space=vector_space)
