@@ -55,6 +55,8 @@ class Embedding:
 
         emb._finalize(**kwargs)
 
+        return emb
+
     @property
     def oov(self):
         return self.oov_
