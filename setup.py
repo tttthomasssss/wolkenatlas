@@ -23,7 +23,7 @@ setup(
 	# Versions should comply with PEP440.  For a discussion on single-sourcing
 	# the version across setup.py and the project code, see
 	# https://packaging.python.org/en/latest/single_source_version.html
-	version='0.1.1',
+	version='0.1.2',
 
 	description='Word Embedding wrapper',
 	long_description=long_description,
@@ -58,6 +58,7 @@ setup(
 		'Programming Language :: Python :: 3.6',
 		'Programming Language :: Python :: 3.7',
 		'Programming Language :: Python :: 3.8',
+		'Programming Language :: Python :: 3.9',
 	],
 
 	# What does your project relate to?
