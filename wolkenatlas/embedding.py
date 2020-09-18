@@ -119,8 +119,8 @@ class Embedding:
         pass
 
 if __name__ == '__main__':
-    #emb = Embedding(model_file='/Users/thomas/research/data/glove/glove.6B.50d.txt', expected_dim=50)
-    emb = Embedding(model_file='/Users/thomas/research/data/glove/glove.6B.50d.kvec')
+    #emb = Embedding.from_file(model_file='/Users/thomas/research/data/glove/glove.6B.50d.txt', expected_dim=50)
+    emb = Embedding.from_file(model_file='/Users/thomas/research/data/glove/glove.6B.50d.kvec')
     data = ['I like beer and pizza.', 'Pizza is actually my favourite food.', 'Pizza and pasta are my thing.']
 
     from wolkenatlas.preprocessing import EmbeddingsVectorizer

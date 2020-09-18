@@ -1,2 +1,5 @@
-# wolkenatlas
-All your embeddings are belong to us
+# Wolkenatlas
+
+Wolkenatlas is a lightweight embedding wrapper with only a single dependency: `numpy`.
+
+### Usage & Examples
