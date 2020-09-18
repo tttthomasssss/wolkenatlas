@@ -3,7 +3,7 @@ import os
 
 import numpy as np
 
-from wolkenatlas.util import constants
+from wolkenatlas import constants
 from wolkenatlas.util import data_processing
 from wolkenatlas.util import file_processing
 

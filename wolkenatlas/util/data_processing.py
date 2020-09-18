@@ -3,7 +3,7 @@ import os
 
 import numpy as np
 
-from wolkenatlas.util import constants
+from wolkenatlas import constants
 
 
 def check_is_wolkenatlas(filename):

@@ -3,9 +3,8 @@ import logging
 
 import numpy as np
 
-from wolkenatlas import encoder
+from wolkenatlas import encoder, constants
 from wolkenatlas.embedding import Embedding
-from wolkenatlas.util import constants
 
 
 class EmbeddingsVectorizer():

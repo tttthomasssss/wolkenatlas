@@ -4,7 +4,7 @@ import logging
 import os
 import urllib
 
-from wolkenatlas.util import constants
+from wolkenatlas import constants
 
 parser = ArgumentParser()
 parser.add_argument('-m', '--vector-model', type=str, help='vector model to use.', required=True, choices=['fasttext',

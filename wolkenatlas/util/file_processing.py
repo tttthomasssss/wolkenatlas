@@ -4,7 +4,7 @@ import pickle
 
 import numpy as np
 
-from wolkenatlas.util import constants
+from wolkenatlas import constants
 
 
 def load_pickle(filename):
