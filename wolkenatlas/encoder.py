@@ -1,6 +1,12 @@
 import numpy as np
 
 
+def average_1_0_scaled_encoder(X):
+    emb = sum_encoder(X=X, normalise=True)
+
+    return _scale_data_zero_one(emb)
+
+
 def average_encoder(X):
     return sum_encoder(X=X, normalise=True)
 
@@ -83,3 +89,12 @@ def concatenate_min_max_encoder(X):
     B = min_encoder(X)
 
     return np.concatenate((A, B))
+
+
+def _scale_data_zero_one(x):
+    if len(x) <= 0: return x
+
+    denom = x.max() - x.min() or 1
+    z = (x - x.min()) / denom
+
+    return z
