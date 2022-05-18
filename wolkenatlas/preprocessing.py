@@ -18,8 +18,11 @@ class EmbeddingsVectorizer():
         self.transform_to_tensor_type_ = getattr(self, f'_to_{transform_to_tensor_type}')
 
         if embedding_model == 'random':
-            self.embedding_model_ = self._create_random_model(dimensionality=kwargs.pop('dimensionality', 300),
-                                                              random_seed=kwargs.pop('random_seed', 29306))
+            self.embedding_model_ = Embedding.random_model(
+                vocab=vocab,
+                dimensionality=kwargs.pop('dimensionality', 300),
+                random_seed=kwargs.pop('random_seed', 29306)
+            )
         else:
             self.embedding_model_ = embedding_model
 
@@ -37,6 +40,37 @@ class EmbeddingsVectorizer():
             self._filter_extremes_with_vocab(freq_table=freq_table)
 
         return self
+
+    def transform_to_encoded_embeddings(self, documents, key_style="full_text"):
+        """
+
+        :param documents:
+        :param key_style: "hashed" to use the hash value of a document as key for its embedding,
+            "full_text" uses the full text of the encoded document as key.
+        :return:
+        """
+        data = []
+        keys = set()
+
+        for doc in documents:
+            doc_key = str(hash(doc)) if key_style == "hashed" else doc
+            if doc_key in keys: continue
+
+            x_doc = []
+            for token in self.tokenizer_(doc):
+                if self.lowercase_(token) in self.vocab_:
+                    x_doc.append(self.embedding_model_[self.lowercase_(token)])
+            transformed_doc = self.encoder_model_(x_doc)
+
+            if len(transformed_doc) <= 0:
+                transformed_doc = self.oov_
+
+            data.append(transformed_doc)
+            keys.add(doc_key)
+
+        inv_idx = dict(zip(keys, list(range(len(keys)))))
+
+        return Embedding(inverted_index=inv_idx, vector_space=self._to_numpy(data))
 
     def transform(self, documents):
         data = []
@@ -99,12 +133,3 @@ class EmbeddingsVectorizer():
         for token in freq_table.elements():
             if token in self.vocab_ and freq_table[token] < self.min_df_:
                 self.vocab_.remove(token)
-
-    def _create_random_model(self, dimensionality, random_seed):
-        idx = dict(enumerate(self.vocab_))
-        inverted_index = dict(zip(idx.values(), idx.keys()))
-
-        rnd = np.random.RandomState(seed=random_seed)
-        vector_space = rnd.randn(len(inverted_index), dimensionality)
-
-        return Embedding(inverted_index=inverted_index, vector_space=vector_space)
