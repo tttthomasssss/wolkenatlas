@@ -12,6 +12,7 @@ class Embedding:
     def __init__(self, inverted_index, vector_space, **kwargs):
         self.inverted_index_ = inverted_index
         self.vector_space_ = vector_space
+        self.index_ = None
 
         if kwargs.pop('should_finalize', True):
             self._finalize(**kwargs)
@@ -26,6 +27,15 @@ class Embedding:
 
         if kwargs.pop('init_neighbours', False):
             pass
+
+    def index2word(self, index):
+        if self.index_ is None:
+            self.index_ = dict(zip(self.inverted_index_.values(), self.inverted_index_.keys()))
+        return self.index_[index]
+
+    @staticmethod
+    def random_model(vocab, dimensionality, random_seed=29306):
+        return Embedding._create_random_model(vocab=vocab, dimensionality=dimensionality, random_seed=random_seed)
 
     @staticmethod
     def from_file(model_file, **kwargs):
@@ -47,11 +57,11 @@ class Embedding:
                     file_type = constants.FILE_TYPE_MAP[ext]
 
             loader = getattr(data_processing, f'load_{file_type}_file')
-            inv_idx, emb = loader(filename=model_file, expected_dim=kwargs.pop('expected_dim', -1),
+            inv_idx, vecs = loader(filename=model_file, expected_dim=kwargs.pop('expected_dim', -1),
                                   expected_vocab_size=kwargs.pop('expected_vocab_size', -1))
 
             emb.inverted_index_ = inv_idx
-            emb.vector_space_ = emb
+            emb.vector_space_ = vecs
 
         emb._finalize(**kwargs)
 
@@ -85,6 +95,10 @@ class Embedding:
     def dimensionality(self):
         return self.dimensionality_
 
+    @property
+    def vocab_size(self):
+        return self.vector_space_.shape[0]
+
     def to_file(self, filename, use_hdf=False):
         if not os.path.exists(filename):
             os.makedirs(filename)
@@ -115,12 +129,22 @@ class Embedding:
 
         return torch.FloatTensor(X)
 
+    @staticmethod
+    def _create_random_model(vocab, dimensionality, random_seed):
+        idx = dict(enumerate(vocab))
+        inverted_index = dict(zip(idx.values(), idx.keys()))
+
+        rnd = np.random.RandomState(seed=random_seed)
+        vector_space = rnd.randn(len(inverted_index), dimensionality)
+
+        return Embedding(inverted_index=inverted_index, vector_space=vector_space)
+
     def get_keras_tensor(self):
         pass
 
 if __name__ == '__main__':
     #emb = Embedding.from_file(model_file='/Users/thomas/research/data/glove/glove.6B.50d.txt', expected_dim=50)
-    emb = Embedding.from_file(model_file='/Users/thomas/research/data/glove/glove.6B.50d.kvec')
+    emb = Embedding.from_file(model_file='/Users/tkober/research/data/collobert_weston/embeddings.txt', expected_dim=50)
     data = ['I like beer and pizza.', 'Pizza is actually my favourite food.', 'Pizza and pasta are my thing.']
 
     from wolkenatlas.preprocessing import EmbeddingsVectorizer
