@@ -104,6 +104,7 @@ def load_text_file(filename, encoding='utf-8', expected_dim=-1,  header_sep=' ',
                 weights = list(map(lambda x: float(x), parts[1:]))
             except ValueError as ex:
                 logging.warning(f'Failed to parse line {idx} (word={word}): {ex}')
+                weights = []
 
             if len(weights) != expected_dim:
                 logging.warning(f'Dimension of extracted weight vector (len(weights)={len(weights)} does not '
