@@ -1,3 +1,5 @@
+from pathlib import Path
+from typing import Any, Dict, List, Union
 import logging
 import os
 
@@ -9,10 +11,12 @@ from wolkenatlas.util import file_processing
 
 
 class Embedding:
-    def __init__(self, inverted_index, vector_space, **kwargs):
+    def __init__(self, inverted_index: Dict[str, int], vector_space: np.ndarray, **kwargs: Any):
         self.inverted_index_ = inverted_index
         self.vector_space_ = vector_space
         self.index_ = None
+        self.random_state_ = np.random.RandomState(kwargs.get("random_seed", 29306))
+        self.character_embeddings_ = kwargs.pop("character_embeddings", False)
 
         if kwargs.pop('should_finalize', True):
             self._finalize(**kwargs)
@@ -33,12 +37,33 @@ class Embedding:
             self.index_ = dict(zip(self.inverted_index_.values(), self.inverted_index_.keys()))
         return self.index_[index]
 
-    @staticmethod
-    def random_model(vocab, dimensionality, random_seed=29306):
-        return Embedding._create_random_model(vocab=vocab, dimensionality=dimensionality, random_seed=random_seed)
+    def _concatenate_modalities(self, other_embedding, oov_handling="random"):
+        oov_keys_in_other_emb = set(self.vocab()) - set(other_embedding.vocab())
+        oov_keys_in_this_emb = set(other_embedding.vocab()) - set(self.vocab())
+        common_keys = set(self.vocab()) & set(other_embedding.vocab())
+
+        # Build shared space
+        key_idx_this = np.array([self.word2index(key) for key in common_keys])
+        key_idx_other = np.array([other_embedding.word2index(key) for key in common_keys])
+        space = np.hstack((self.vector_space_[key_idx_this], other_embedding.vector_space_[key_idx_other]))
+        inv_idx = {key: idx for (idx, key) in enumerate(common_keys)}
+
+        for key in oov_keys_in_other_emb:
+            rnd = other_embedding.random_state_.normal(loc=0, scale=1, size=(other_embedding.dimensionality,))
+            inv_idx[key] = len(inv_idx)
+            vector = np.hstack((self[key], rnd))
+            space = np.vstack((space, vector))
+
+        for key in oov_keys_in_this_emb:
+            rnd = self.random_state_.normal(loc=0, scale=1, size=(self.dimensionality,))
+            inv_idx[key] = len(inv_idx)
+            vector = np.hstack((rnd, other_embedding[key]))
+            space = np.vstack((space, vector))
+
+        return Embedding(inverted_index=inv_idx, vector_space=space)
 
     @staticmethod
-    def from_file(model_file, **kwargs):
+    def _load_from_file(model_file: str, **kwargs: Any) -> "Embedding":
         emb = Embedding._empty()
 
         if data_processing.check_is_wolkenatlas(model_file):
@@ -58,12 +83,30 @@ class Embedding:
 
             loader = getattr(data_processing, f'load_{file_type}_file')
             inv_idx, vecs = loader(filename=model_file, expected_dim=kwargs.pop('expected_dim', -1),
-                                  expected_vocab_size=kwargs.pop('expected_vocab_size', -1))
+                                   expected_vocab_size=kwargs.pop('expected_vocab_size', -1))
 
             emb.inverted_index_ = inv_idx
             emb.vector_space_ = vecs
 
         emb._finalize(**kwargs)
+
+        return emb
+
+    @staticmethod
+    def random_model(vocab, dimensionality, random_seed=29306):
+        return Embedding._create_random_model(vocab=vocab, dimensionality=dimensionality, random_seed=random_seed)
+
+    @staticmethod
+    def from_file(model_file: Union[str, List[str]], **kwargs: Any) -> "Embedding":
+
+        if isinstance(model_file, list):
+            emb = Embedding._load_from_file(model_file=model_files[0], **kwargs)
+            for file in model_files[1:]:
+                e = Embedding._load_from_file(model_file=file, **kwargs)
+
+                emb = emb._concatenate_modalities(e, kwargs.get("oov_handling", "random"))
+        else:
+            emb = Embedding._load_from_file(model_file=model_file, **kwargs)
 
         return emb
 
@@ -143,6 +186,13 @@ class Embedding:
         pass
 
 if __name__ == '__main__':
+    model_files = [
+        "/Users/tkober/research/data/zalando/spp-article-data-slice-1-50-01.kvec",
+        "/Users/tkober/research/data/zalando/spp-fdna-data-slice-1-50.kvec"
+    ]
+    emb = Embedding.multimodal_embedding_from_files(model_files=model_files)
+    emb.to_file("/Users/tkober/research/data/zalando/spp-article-tab+fdna-data-slice-1-50-01.kvec")
+
     #emb = Embedding.from_file(model_file='/Users/thomas/research/data/glove/glove.6B.50d.txt', expected_dim=50)
     emb = Embedding.from_file(model_file='/Users/tkober/research/data/collobert_weston/embeddings.txt', expected_dim=50)
     data = ['I like beer and pizza.', 'Pizza is actually my favourite food.', 'Pizza and pasta are my thing.']
