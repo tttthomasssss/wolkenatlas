@@ -34,13 +34,13 @@ class Embedding:
 
     def index2word(self, index):
         if self.index_ is None:
-            self.index_ = dict(zip(self.inverted_index_.values(), self.inverted_index_.keys()))
+            self.index_ = {idx: item for (item, idx) in self.inverted_index_.items()}
         return self.index_[index]
 
     def _concatenate_modalities(self, other_embedding, oov_handling="random"):
-        oov_keys_in_other_emb = set(self.vocab()) - set(other_embedding.vocab())
-        oov_keys_in_this_emb = set(other_embedding.vocab()) - set(self.vocab())
-        common_keys = set(self.vocab()) & set(other_embedding.vocab())
+        oov_keys_in_other_emb = set(self.vocab) - set(other_embedding.vocab)
+        oov_keys_in_this_emb = set(other_embedding.vocab) - set(self.vocab)
+        common_keys = set(self.vocab) & set(other_embedding.vocab)
 
         # Build shared space
         key_idx_this = np.array([self.word2index(key) for key in common_keys])
@@ -100,8 +100,8 @@ class Embedding:
     def from_file(model_file: Union[str, List[str]], **kwargs: Any) -> "Embedding":
 
         if isinstance(model_file, list):
-            emb = Embedding._load_from_file(model_file=model_files[0], **kwargs)
-            for file in model_files[1:]:
+            emb = Embedding._load_from_file(model_file=model_file[0], **kwargs)
+            for file in model_file[1:]:
                 e = Embedding._load_from_file(model_file=file, **kwargs)
 
                 emb = emb._concatenate_modalities(e, kwargs.get("oov_handling", "random"))
@@ -114,6 +114,7 @@ class Embedding:
     def oov(self):
         return self.oov_
 
+    @property
     def vocab(self):
         return self.inverted_index_.keys()
 
@@ -174,8 +175,7 @@ class Embedding:
 
     @staticmethod
     def _create_random_model(vocab, dimensionality, random_seed):
-        idx = dict(enumerate(vocab))
-        inverted_index = dict(zip(idx.values(), idx.keys()))
+        inverted_index = {word: idx for (idx, word) in enumerate(vocab)}
 
         rnd = np.random.RandomState(seed=random_seed)
         vector_space = rnd.randn(len(inverted_index), dimensionality)
@@ -185,23 +185,3 @@ class Embedding:
     def get_keras_tensor(self):
         pass
 
-if __name__ == '__main__':
-    model_files = [
-        "/Users/tkober/research/data/zalando/spp-article-data-slice-1-50-01.kvec",
-        "/Users/tkober/research/data/zalando/spp-fdna-data-slice-1-50.kvec"
-    ]
-    emb = Embedding.multimodal_embedding_from_files(model_files=model_files)
-    emb.to_file("/Users/tkober/research/data/zalando/spp-article-tab+fdna-data-slice-1-50-01.kvec")
-
-    #emb = Embedding.from_file(model_file='/Users/thomas/research/data/glove/glove.6B.50d.txt', expected_dim=50)
-    emb = Embedding.from_file(model_file='/Users/tkober/research/data/collobert_weston/embeddings.txt', expected_dim=50)
-    data = ['I like beer and pizza.', 'Pizza is actually my favourite food.', 'Pizza and pasta are my thing.']
-
-    from wolkenatlas.preprocessing import EmbeddingsVectorizer
-    vec = EmbeddingsVectorizer(embedding_model=emb)
-    X = vec.transform(data)
-    print(X.shape)
-
-    #emb.to_file('/Users/thomas/research/data/glove/glove.6B.50d.kvec')
-
-    #emb = Embedding(model_file='/Users/thomas/research/data/fastText/cc.en.300.bin', expected_dim=300, expected_vocab_size=2000000, file_type='binary')
