@@ -1,5 +1,7 @@
 import logging
 import os
+import pickle
+import tarfile
 
 import numpy as np
 
@@ -28,6 +30,26 @@ def process_header(header, encoding='utf-8', sep=' '):
     vocab_size, vector_dim = header.split(sep)
 
     return int(vocab_size), int(vector_dim)
+
+
+def load_archive_file(filename, expected_dim=-1, buffer_offset=128, dtype=np.float32, **_):
+    space = None
+    inv_idx = None
+
+    with tarfile.open(filename, "r:gz") as tar:
+        for tar_info in tar:
+            if tar_info.isreg():
+                if tar_info.name.endswith(constants.INVERTED_INDEX_FILENAME):
+                    content = tar.extractfile(tar_info.name)
+                    inv_idx = pickle.load(content)
+                if tar_info.name.endswith(constants.VECTORS_FILENAME_NPY):
+                    content = tar.extractfile(tar_info.name)
+                    space = np.frombuffer(content.read(), dtype=dtype, offset=buffer_offset)
+                    space = space.reshape((len(inv_idx), expected_dim))
+                if tar_info.name.endswith(constants.VECTORS_FILENAME_HDF):
+                    raise NotImplementedError(f"Tarball support for hdf files is not yet implemented!\n\nPlease report an issue at 'https://github.com/tttthomasssss/wolkenatlas/issues'!")
+
+    return inv_idx, space
 
 
 def load_binary_file(filename, encoding='utf-8', expected_dim=-1, expected_vocab_size=-1,
