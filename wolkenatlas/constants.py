@@ -4,7 +4,10 @@ INVERTED_INDEX_FILENAME = 'inverted_index.pkl'
 
 FILE_TYPE_MAP = {
     '.txt': 'text',
-    '.bin': 'binary'
+    '.bin': 'binary',
+    '.tgz': 'archive',
+    '.tar.gz': 'archive',
+    '.gz': 'archive'
 }
 
 COMPOSITION_FUNCTION_DIM_MULTIPLIER = {
