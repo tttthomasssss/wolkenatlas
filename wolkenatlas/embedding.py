@@ -75,7 +75,7 @@ class Embedding:
 
             if file_type is None:
                 ext = os.path.splitext(model_file)[1]
-                if ext not in ['.txt', '.bin']:
+                if ext not in ['.txt', '.bin', '.tgz', '.tar.gz', '.gz']:
                     raise ValueError(f'Need to specify "file_type" (e.g. "text" or "binary") if you are not '
                                      f'loading a wolkenatlas file!')
                 else:
