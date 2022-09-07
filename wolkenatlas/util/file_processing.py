@@ -1,22 +1,20 @@
+import json
 import logging
 import os
-import pickle
 
 import numpy as np
 
 from wolkenatlas import constants
 
 
-def load_pickle(filename):
-    with open(filename, 'rb') as in_file:
-        inv_idx = pickle.load(in_file)
-
-    return inv_idx
+def load_json(path: str):
+    with open(path) as file:
+        return json.load(file)
 
 
-def save_pickle(inv_idx, filename):
-    with open(filename, 'wb') as out_file:
-        pickle.dump(inv_idx, out_file)
+def save_json(obj, path: str):
+    with open(path, 'wb') as out_file:
+        json.dump(obj, out_file)
 
 
 def save_array(obj, filename):
