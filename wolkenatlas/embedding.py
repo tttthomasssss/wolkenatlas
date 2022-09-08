@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import Any, Dict, List, Union
 import logging
 import os
@@ -67,8 +66,8 @@ class Embedding:
         emb = Embedding._empty()
 
         if data_processing.check_is_wolkenatlas(model_file):
-            emb.inverted_index_ = file_processing.load_pickle(os.path.join(model_file,
-                                                                           constants.INVERTED_INDEX_FILENAME))
+            emb.inverted_index_ = file_processing.load_json(os.path.join(model_file,
+                                                                         constants.INVERTED_INDEX_FILENAME))
             emb.vector_space_ = file_processing.load_vector_space(model_file)
         else:
             file_type = kwargs.pop('file_type', None)
@@ -148,7 +147,7 @@ class Embedding:
             os.makedirs(filename)
 
         file_processing.save_vector_space(self.vector_space_, filename, use_hdf)
-        file_processing.save_pickle(self.inverted_index_, os.path.join(filename, constants.INVERTED_INDEX_FILENAME))
+        file_processing.save_json(self.inverted_index_, os.path.join(filename, constants.INVERTED_INDEX_FILENAME))
 
     def word2index(self, word, oov=-1):
         return self.inverted_index_.get(word, oov)

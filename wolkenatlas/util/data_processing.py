@@ -1,6 +1,6 @@
+import json
 import logging
 import os
-import pickle
 import tarfile
 
 import numpy as np
@@ -41,7 +41,7 @@ def load_archive_file(filename, expected_dim=-1, buffer_offset=128, dtype=np.flo
             if tar_info.isreg():
                 if tar_info.name.endswith(constants.INVERTED_INDEX_FILENAME):
                     content = tar.extractfile(tar_info.name)
-                    inv_idx = pickle.load(content)
+                    inv_idx = json.load(content)
                 if tar_info.name.endswith(constants.VECTORS_FILENAME_NPY):
                     content = tar.extractfile(tar_info.name)
                     space = np.frombuffer(content.read(), dtype=dtype, offset=buffer_offset)
