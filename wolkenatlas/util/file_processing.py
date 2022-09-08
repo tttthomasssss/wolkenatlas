@@ -13,7 +13,7 @@ def load_json(path: str):
 
 
 def save_json(obj, path: str):
-    with open(path, 'wb') as out_file:
+    with open(path, 'w') as out_file:
         json.dump(obj, out_file)
 
 
