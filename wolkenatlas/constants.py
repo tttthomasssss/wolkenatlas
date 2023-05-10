@@ -2,10 +2,6 @@ VECTORS_FILENAME_HDF = "X.hdf"
 VECTORS_FILENAME_NPY = "X.npy"
 INVERTED_INDEX_FILENAME = "inverted_index.json"
 
-INPUT_IDS_FILENAME_NPY = "input_ids.npy"
-TOKEN_TYPE_IDS_FILENAME_NPY = "token_type_ids.npy"
-ATTENTION_MASK_FILENAME_NPY = "attention_mask.npy"
-
 INPUT_IDS_KEY = "input_ids"
 TOKEN_TYPE_IDS_KEY = "token_type_ids"
 ATTENTION_MASK_KEY = "attention_mask"
