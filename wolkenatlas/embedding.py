@@ -190,7 +190,8 @@ class Embedding:
         else:
             word_idx = self.inverted_index_[word]
 
-        return self.vector_space_[self.inverted_index_[word]]
+        return self.vector_space_[word_idx]
+    
     @property
     def dimensionality(self):
         return self.dimensionality_
