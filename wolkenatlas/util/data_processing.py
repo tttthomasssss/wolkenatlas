@@ -8,12 +8,28 @@ import numpy as np
 from wolkenatlas import constants
 
 
-def check_is_wolkenatlas(filename):
+def _check_is_single_file(filename: str) -> bool:
     has_vectors_file = (os.path.exists(os.path.join(filename, constants.VECTORS_FILENAME_NPY)) or
                         os.path.exists(os.path.join(filename, constants.VECTORS_FILENAME_HDF)))
     has_inv_idx_file = os.path.exists(os.path.join(filename, constants.INVERTED_INDEX_FILENAME))
 
     return has_vectors_file and has_inv_idx_file
+
+
+def _check_is_multi_file(filename: str) -> bool:
+    has_inv_idx_file = os.path.exists(os.path.join(filename, constants.INVERTED_INDEX_FILENAME))
+
+    has_input_ids_file = os.path.exists(os.path.join(filename, constants.INPUT_IDS_FILENAME_NPY))
+    has_attn_mask_file = os.path.exists(os.path.join(filename, constants.ATTENTION_MASK_FILENAME_NPY))
+
+    return has_inv_idx_file and has_input_ids_file and has_attn_mask_file
+
+
+def check_is_wolkenatlas(filename):
+    is_single_file = _check_is_single_file(filename=filename)
+    is_multi_file = _check_is_multi_file(filename=filename)
+
+    return is_single_file or is_multi_file
 
 
 def _check_has_header(line, encoding='utf-8', sep=' '):
