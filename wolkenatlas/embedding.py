@@ -10,9 +10,25 @@ from wolkenatlas.util import file_processing
 
 
 class Embedding:
-    def __init__(self, inverted_index: Dict[str, int], vector_space: np.ndarray, **kwargs: Any):
+    def __init__(
+            self,
+            inverted_index: Dict[str, int],
+            vector_space: Union[np.ndarray, Dict[str, np.ndarray]],
+            **kwargs: Any
+    ):
         self.inverted_index_ = inverted_index
-        self.vector_space_ = vector_space
+        if isinstance(vector_space, dict):
+            vector_stack = np.dstack((vector_space["input_ids"], vector_space["attention_mask"]))
+            if vector_stack.shape[-1] > 2:
+                vector_stack = np.dstack((vector_stack, vector_space["token_type_ids"]))
+            self.vector_space_ = vector_stack
+
+            self.fn_getitem_ = self._getitem_multi_embeddings
+        else:
+            self.vector_space_ = vector_space
+
+            self.fn_getitem_ = self._getitem_single_embedding
+
         self.index_ = None
         self.random_state_ = np.random.RandomState(kwargs.get("random_seed", 29306))
         self.character_embeddings_ = kwargs.pop("character_embeddings", False)
@@ -69,6 +85,10 @@ class Embedding:
             emb.inverted_index_ = file_processing.load_json(os.path.join(model_file,
                                                                          constants.INVERTED_INDEX_FILENAME))
             emb.vector_space_ = file_processing.load_vector_space(model_file)
+            if emb.vector_space_.ndim > 2:
+                emb.fn_getitem_ = emb._getitem_multi_embeddings
+            else:
+                emb.fn_getitem_ = emb._getitem_single_embedding
         else:
             file_type = kwargs.pop('file_type', None)
 
@@ -127,13 +147,37 @@ class Embedding:
         return self.inverted_index_[word]
 
     def __getitem__(self, word, default=None):
+        return self.fn_getitem_(word=word, default=default)
+
+    def _getitem_multi_embeddings(self, word, default=None):
+        default = default or self.oov_
+
+        if word not in self.inverted_index_:
+            d = {
+                constants.INPUT_IDS_KEY: default,
+                constants.ATTENTION_MASK_KEY: default
+            }
+            if self.vector_space_.shape[-1] == 3:
+                d[constants.TOKEN_TYPE_IDS_KEY] = default
+            return d
+
+        word_idx = self.inverted_index_[word]
+        d = {
+            constants.INPUT_IDS_KEY: self.vector_space_[word_idx, :, constants.INPUT_IDS_INDEX],
+            constants.ATTENTION_MASK_KEY: self.vector_space_[word_idx, :, constants.ATTENTION_MASK_INDEX]
+        }
+        if self.vector_space_.shape[-1] == 3:
+            d[constants.TOKEN_TYPE_IDS_KEY] = self.vector_space_[word_idx, :, constants.TOKEN_TYPE_IDS_INDEX]
+
+        return d
+
+    def _getitem_single_embedding(self, word, default=None):
         default = default or self.oov_
 
         if word not in self.inverted_index_:
             return default
 
         return self.vector_space_[self.inverted_index_[word]]
-
     @property
     def dimensionality(self):
         return self.dimensionality_
