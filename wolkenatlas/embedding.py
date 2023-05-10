@@ -1,6 +1,7 @@
-from typing import Any, Dict, List, Union
 import logging
+import operator
 import os
+from typing import Any, Dict, List, Union
 
 import numpy as np
 
@@ -152,32 +153,45 @@ class Embedding:
     def _getitem_multi_embeddings(self, word, default=None):
         default = default or self.oov_
 
-        if word not in self.inverted_index_:
-            d = {
+        multi_key_request = isinstance(word, tuple)
+        if not multi_key_request and word not in self.inverted_index_:
+            data = {
                 constants.INPUT_IDS_KEY: default,
                 constants.ATTENTION_MASK_KEY: default
             }
             if self.vector_space_.shape[-1] == 3:
-                d[constants.TOKEN_TYPE_IDS_KEY] = default
-            return d
+                data[constants.TOKEN_TYPE_IDS_KEY] = default
+            return data
 
-        word_idx = self.inverted_index_[word]
-        d = {
+        if multi_key_request:
+            word_idx = np.array(operator.itemgetter(*word)(self.inverted_index_))
+        else:
+            word_idx = self.inverted_index_[word]
+
+        data = {
             constants.INPUT_IDS_KEY: self.vector_space_[word_idx, :, constants.INPUT_IDS_INDEX],
             constants.ATTENTION_MASK_KEY: self.vector_space_[word_idx, :, constants.ATTENTION_MASK_INDEX]
         }
         if self.vector_space_.shape[-1] == 3:
-            d[constants.TOKEN_TYPE_IDS_KEY] = self.vector_space_[word_idx, :, constants.TOKEN_TYPE_IDS_INDEX]
+            data[constants.TOKEN_TYPE_IDS_KEY] = self.vector_space_[word_idx, :, constants.TOKEN_TYPE_IDS_INDEX]
 
-        return d
+        return data
 
     def _getitem_single_embedding(self, word, default=None):
         default = default or self.oov_
 
-        if word not in self.inverted_index_:
+        multi_key_request = isinstance(word, tuple)
+
+        if not multi_key_request and word not in self.inverted_index_:
             return default
 
-        return self.vector_space_[self.inverted_index_[word]]
+        if multi_key_request:
+            word_idx = np.array(operator.itemgetter(*word)(self.inverted_index_))
+        else:
+            word_idx = self.inverted_index_[word]
+
+        return self.vector_space_[word_idx]
+    
     @property
     def dimensionality(self):
         return self.dimensionality_
