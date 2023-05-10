@@ -25,10 +25,12 @@ class Embedding:
             self.vector_space_ = vector_stack
 
             self.fn_getitem_ = self._getitem_multi_embeddings
+            self.fn_getitem_by_index_ = self._get_item_by_index_multi_embeddings
         else:
             self.vector_space_ = vector_space
 
             self.fn_getitem_ = self._getitem_single_embedding
+            self.fn_getitem_by_index_ = self._get_item_by_index_single_embedding
 
         self.index_ = None
         self.random_state_ = np.random.RandomState(kwargs.get("random_seed", 29306))
@@ -88,8 +90,10 @@ class Embedding:
             emb.vector_space_ = file_processing.load_vector_space(model_file)
             if emb.vector_space_.ndim > 2:
                 emb.fn_getitem_ = emb._getitem_multi_embeddings
+                emb.fn_getitem_by_index_ = emb._get_item_by_index_multi_embeddings
             else:
                 emb.fn_getitem_ = emb._getitem_single_embedding
+                emb.fn_getitem_by_index_ = emb._get_item_by_index_single_embedding
         else:
             file_type = kwargs.pop('file_type', None)
 
@@ -148,7 +152,23 @@ class Embedding:
         return self.inverted_index_[word]
 
     def __getitem__(self, word, default=None):
-        return self.fn_getitem_(word=word, default=default)
+        if isinstance(word, np.ndarray):
+            return self.fn_getitem_by_index_(index=word)
+        else:
+            return self.fn_getitem_(word=word, default=default)
+
+    def _get_item_by_index_single_embedding(self, index):
+        return self.vector_space_[index]
+
+    def _get_item_by_index_multi_embeddings(self, index):
+        data = {
+            constants.INPUT_IDS_KEY: self.vector_space_[index, :, constants.INPUT_IDS_INDEX],
+            constants.ATTENTION_MASK_KEY: self.vector_space_[index, :, constants.ATTENTION_MASK_INDEX]
+        }
+        if self.vector_space_.shape[-1] == 3:
+            data[constants.TOKEN_TYPE_IDS_KEY] = self.vector_space_[index, :, constants.TOKEN_TYPE_IDS_INDEX]
+
+        return data
 
     def _getitem_multi_embeddings(self, word, default=None):
         default = default or self.oov_
@@ -238,7 +258,3 @@ class Embedding:
         vector_space = rnd.randn(len(inverted_index), dimensionality)
 
         return Embedding(inverted_index=inverted_index, vector_space=vector_space)
-
-    def get_keras_tensor(self):
-        pass
-
