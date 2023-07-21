@@ -152,7 +152,7 @@ class Embedding:
         return self.inverted_index_[word]
 
     def __getitem__(self, word, default=None):
-        if isinstance(word, np.ndarray):
+        if isinstance(word, (int, np.ndarray)):
             return self.fn_getitem_by_index_(index=word)
         else:
             return self.fn_getitem_(word=word, default=default)
