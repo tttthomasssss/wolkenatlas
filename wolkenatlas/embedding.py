@@ -173,7 +173,7 @@ class Embedding:
     def _getitem_multi_embeddings(self, word, default=None):
         default = default or self.oov_
 
-        multi_key_request = isinstance(word, tuple)
+        multi_key_request = isinstance(word, (tuple, list))
         if not multi_key_request and word not in self.inverted_index_:
             data = {
                 constants.INPUT_IDS_KEY: default,
@@ -200,7 +200,7 @@ class Embedding:
     def _getitem_single_embedding(self, word, default=None):
         default = default or self.oov_
 
-        multi_key_request = isinstance(word, tuple)
+        multi_key_request = isinstance(word, (tuple, list))
 
         if not multi_key_request and word not in self.inverted_index_:
             return default

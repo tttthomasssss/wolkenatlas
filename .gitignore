@@ -1,3 +1,4 @@
+.DS_Store
 *.pyc
 .idea/*
 # Byte-compiled / optimized / DLL files
